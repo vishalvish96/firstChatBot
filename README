@@ -1,0 +1,54 @@
+AI-Powered Personal Portfolio Chatbot (Gradio + LLaMA/Ollama)
+
+This project is an AI chatbot that answers questions about Vishal Mandal using his LinkedIn PDF, summary, and a locally-running LLM (Ollama).
+It runs on a clean Gradio chat UI and responds in real-time as if it were Vishal himself.
+
+📌 Features
+
+✅ Reads your LinkedIn profile PDF automatically
+
+✅ Loads your personal summary from a text file
+
+✅ Creates a system-level persona prompt
+
+✅ Uses Ollama to run models locally (LLaMA, Qwen, Mistral, etc.)
+
+✅ Chat interface built with Gradio
+
+✅ Fully offline — no OpenAI API needed
+
+✅ Fast, lightweight, private
+
+🧠 How It Works
+
+Your PDF profile is processed using PyPDF2
+
+Your summary.txt is loaded
+
+A system prompt is generated with your bio + LinkedIn data
+
+The chatbot responds in the style of you (Vishal Mandal)
+
+Gradio provides an easy interface to chat with yourself 😄
+
+🧩 Code Overview
+
+The core logic:
+
+Load PDF + summary
+
+Build system persona
+
+Handle chat messages
+
+Send them to Ollama
+
+Render using Gradio
+
+Your main function:
+
+def chat(message, history):
+    messages = [{"role": "system", "content": system_prompt}] + history + [{"role": "user", "content": message}]
+    response = ollama.chat(model="llama3.2", messages=messages)
+    bot_answer = response.get("message", {}).get("content", "Sorry, I couldn't generate a response.")
+    return bot_answer
