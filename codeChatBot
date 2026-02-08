@@ -1,0 +1,59 @@
+from csv import reader
+from nt import system
+from fastapi import responses
+import ollama
+from PyPDF2 import PageObject, PdfReader
+import gradio as gr
+
+
+#This code reads every page of a PDF, extracts the text, and adds it to a variable called linkedin.
+reader= PdfReader("1_foundations/me/linkedin.pdf")
+linkedin=""
+
+for page in reader.pages:
+    text = page.extract_text()
+    if text:
+        linkedin+= text
+
+# print(linkedin)
+
+#READING SUMMARYa
+with open("1_foundations/me/summary.txt", "r", encoding="utf-8") as f:
+    summary = f.read()
+
+# print(summary)
+name="Vishal Mandal"
+
+
+system_prompt = f"You are acting as {name}. You are answering questions on {name}'s website, \
+particularly questions related to {name}'s career, background, skills and experience. \
+Your responsibility is to represent {name} for interactions on the website as faithfully as possible. \
+You are given a summary of {name}'s background and LinkedIn profile which you can use to answer questions. \
+Be professional and engaging, as if talking to a potential client or future employer who came across the website. \
+If you don't know the answer, say so."
+
+system_prompt+= f"\n\n## Summary:\n{summary}\n\n## LinkedIn Profile:\n{linkedin}\n\n"
+system_prompt+= f"With this context, please chat with the user, always staying in character as {name}."
+
+# print(system_prompt)
+
+#with the help of gradio we will call the func
+def chat(message, history):
+    try:
+        # history is already a list of dicts: [{"role": "user", "content": "..."}, ...]
+        # Note: Gradio uses "content", but your code used "message". 
+        # Let's align them to what Ollama/Gradio expect.
+        
+        messages = [{"role": "system", "content": system_prompt}] + history + [{"role": "user", "content": message}]
+        
+        response = ollama.chat(model="llama3.2", messages=messages)
+        bot_answer = response.get("message", {}).get("content", "Sorry, I couldn't generate a response.")
+
+        # ONLY return the string. Gradio handles the history append automatically.
+        return bot_answer
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+# Keep your interface call as is
+gr.ChatInterface(chat, type="messages").launch()
